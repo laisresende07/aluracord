@@ -1,37 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import appConfig from '../../config.json'
 import { Box, Button, Text, TextField, Image } from '@skynexui/components'
-
-function GlobalStyle() {
-    return (
-        <style global jsx>{`
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-                list-style: none;
-            }
-
-            body {
-                font-family: 'Open Sans', sans-serif;
-            }
-
-            /* App fit Height */ 
-            html, body, #__next {
-                min-height: 100vh;
-                display: flex;
-                flex: 1;
-            }
-            #__next {
-                flex: 1;
-            }
-            #__next > * {
-                flex: 1;
-            }
-            /* ./App fit Height */ 
-        `}</style>
-    )
-}
+import { useRouter } from 'next/router'
 
 function Title(props) {
     const Tag = props.tag || 'h1'
@@ -50,37 +20,19 @@ function Title(props) {
     )
 }
 
-// function Home() {
-//     return (
-//         <div>
-//             <GlobalStyle />
-//             <Title>Bem vindo de volta!</Title>
-//             <p>Discord - Alura Matrix</p>
-
-//             <style jsx>{`
-//                 h1 {
-//                     color: red;
-//                     font-size: 24px;
-//                     font-weight: 600;
-//                 }
-//             `}</style>
-//         </div>
-//     )
-// }
-
-// export default Home;
-
 export default function PaginaInicial() {
-    const username = 'laisresende07';
+    const [username, setUsername] = useState()
+    const [img, setImg] = useState('https://mystickermania.com/cdn/stickers/memes/sticker_2094-512x512.png')
+
+    const routes = useRouter()
 
     return (
         <>
-        <GlobalStyle />
         <Box
             styleSheet={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            backgroundColor: appConfig.theme.colors.primary[500],
-            backgroundImage: 'url(https://virtualbackgrounds.site/wp-content/uploads/2020/08/the-matrix-digital-rain.jpg)',
+            backgroundColor: appConfig.theme.colors.primary['000'],
+            backgroundImage: 'url(https://virtualbackgrounds.site/wp-content/uploads/2020/07/this-is-fine.jpeg)',
             backgroundRepeat: 'no-repeat', backgroundSize: 'cover', backgroundBlendMode: 'multiply',
             }}
         >
@@ -94,14 +46,20 @@ export default function PaginaInicial() {
                     sm: 'row',
                 },
                 width: '100%', maxWidth: '700px',
-                borderRadius: '5px', padding: '32px', margin: '16px',
-                boxShadow: '0 2px 10px 0 rgb(0 0 0 / 20%)',
-                backgroundColor: appConfig.theme.colors.neutrals[700],
+                borderRadius: '8px', padding: '32px', margin: '16px',
+                background: 'rgba( 0, 0, 0, 0.6 )',
+                boxShadow: '0 8px 32px 0 rgba( 31, 38, 135, 0.37 )',
+                BackdropFilter: 'blur(5px)',
             }}
             >
             {/* Formulário */}
             <Box
             as="form"
+            autoComplete="off"
+            onSubmit={e => {
+                e.preventDefault()
+                routes.push('/chat')
+            }}
             styleSheet={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                 width: { xs: '100%', sm: '50%' }, textAlign: 'center', marginBottom: '32px',
@@ -114,6 +72,16 @@ export default function PaginaInicial() {
 
             <TextField
                 fullWidth
+                value={username}
+                onChange={e => {
+                    setUsername(e.target.value)
+                    if(e.target.value.length > 2) {
+                        setImg(`https://github.com/${e.target.value}.png`)
+                    }else if(e.target.value.length === 0) {
+                        setImg('https://mystickermania.com/cdn/stickers/memes/sticker_2094-512x512.png')
+                    }
+                    
+                }}                
                 textFieldColors={{
                     neutral: {
                         textColor: appConfig.theme.colors.neutrals[200],
@@ -158,7 +126,8 @@ export default function PaginaInicial() {
                     borderRadius: '50%',
                     marginBottom: '16px',
                 }}
-                src={`https://github.com/${username}.png`}
+                onError={() => setImg('https://mystickermania.com/cdn/stickers/memes/sticker_2094-512x512.png')}
+                src={img}
             />
             <Text
             variant="body4"
@@ -169,7 +138,7 @@ export default function PaginaInicial() {
                     borderRadius: '1000px'
             }}
             >
-                {username}
+                {username || 'Dog'}
             </Text>
             </Box>
             {/* Photo Area */}
