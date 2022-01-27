@@ -25,6 +25,29 @@ function GlobalStyle() {
                 flex: 1;
             }
             /* ./App fit Height */ 
+
+            /* ===== Scrollbar CSS ===== */
+            /* Firefox */
+            * {
+                scrollbar-width: auto;
+                scrollbar-color: #d6d6d6 #292929;
+            }
+
+            /* Chrome, Edge, and Safari */
+            *::-webkit-scrollbar {
+                width: 13px;
+            }
+
+            *::-webkit-scrollbar-track {
+                background: #292929;
+                border-radius: 5px;
+            }
+
+            *::-webkit-scrollbar-thumb {
+                background-color: #d6d6d6;
+                border-radius: 5px;
+                border: 2px solid #292929;
+            }
         `}</style>
     )
 }

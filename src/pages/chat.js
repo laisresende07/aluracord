@@ -1,22 +1,48 @@
 import { Box, Text, TextField, Image, Button } from '@skynexui/components'
-import React, { useState } from 'react'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import React, { useState, useEffect } from 'react'
 import appConfig from '../../config.json'
+
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzMwMzYwMywiZXhwIjoxOTU4ODc5NjAzfQ.XpObNsCTnR8wClc5iPXTb5xHtQ3kM3GrHjRPSaJtsFc'
+const SUPABASE_URL = 'https://zxknhuscmcytbesfoial.supabase.co'
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 export default function Chat() {
     const [mensagem, setMensagem] = useState('')
     const [listaDeMensagens, setListaDeMensagens] = useState([])
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        supabaseClient
+        .from('mensagens')
+        .select('*')
+        .order('id', { ascending: false })
+        .then(res => {
+            setListaDeMensagens(res.data)
+            setLoading(false)
+        })
+    }, []);
+    
 
     function handleNovaMensagem(novaMensagem) {
         const mensagem = {
-            id: listaDeMensagens.length + 1,
             de: 'laisresende07',
             texto: novaMensagem,
         }
 
-        setListaDeMensagens([
-            mensagem,
-            ...listaDeMensagens,
-        ])
+        supabaseClient
+            .from('mensagens')
+            .insert([
+                mensagem
+            ])
+            .then(res => {
+                setListaDeMensagens([
+                    res.data[0],
+                    ...listaDeMensagens,
+                ])
+            })
+
+        
         setMensagem('')
     }
 
@@ -35,10 +61,11 @@ export default function Chat() {
                     display: 'flex',
                     flexDirection: 'column',
                     flex: 1,
-                    boxShadow: '0 2px 10px 0 rgb(0 0 0 / 20%)',
-                    borderRadius: '5px',
-                    backgroundColor: appConfig.theme.colors.neutrals[700],
-                    height: '90%',
+                    borderRadius: '8px',
+                    background: 'rgba( 0, 0, 0, 0.6 )',
+                    boxShadow: '0 8px 32px 0 rgba( 31, 38, 135, 0.37 )',
+                    BackdropFilter: 'blur(5px)',
+                        height: '90%',
                     maxWidth: '90%',
                     maxHeight: '95vh',
                     padding: '32px',
@@ -53,18 +80,60 @@ export default function Chat() {
                         height: '80%',
                         backgroundColor: appConfig.theme.colors.neutrals[600],
                         flexDirection: 'column',
-                        borderRadius: '5px',
+                        borderRadius: '8px',
                         padding: '16px',
                     }}
                 >
-                    <MessageList mensagens={listaDeMensagens} />
-                    {/* {listaDeMensagens.map((mensagemAtual) => {
-                        return (
-                            <li key={mensagemAtual.id}>
-                                {mensagemAtual.de}: {mensagemAtual.texto}
-                            </li>
-                        )
-                    })} */}
+                    {
+                        loading ?
+                        <Box
+                        styleSheet={{
+                            display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center'
+                        }}>
+                            <div class="dots">
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                            </div>
+                            <style global jsx>{`
+                                @keyframes wave {
+                                    from {
+                                        transform: translateY(-100%);
+                                    }
+                                    to {
+                                        transform: translateY(100%);
+                                    }
+                                }
+                                
+                                .dots {
+                                    height: 100%;
+                                    display: flex;
+                                    justify-content: center;
+                                    align-items: center;
+                                }
+                                
+                                .dots div {
+                                    width: 15px;
+                                    height: 15px;
+                                    background: #d6d6d6;
+                                    border-radius: 50%;
+                                    margin: 0 5px;
+                                    
+                                    animation: wave .7s ease-in-out infinite alternate;
+                                }
+                                
+                                .dots div:nth-child(1) {
+                                    animation-delay: -0.4s;
+                                }
+                                
+                                .dots div:nth-child(2) {
+                                    animation-delay: -0.2s;
+                                }
+                                
+                            `}</style>
+                        </Box> :
+                        <MessageList mensagens={listaDeMensagens} />
+                    }
                     <Box
                         as="form"
                         styleSheet={{
@@ -92,8 +161,8 @@ export default function Chat() {
                                 width: '100%',
                                 border: '0',
                                 resize: 'none',
-                                borderRadius: '5px',
-                                padding: '6px 8px',
+                                borderRadius: '8px',
+                                padding: '14px',
                                 backgroundColor: appConfig.theme.colors.neutrals[800],
                                 marginRight: '12px',
                                 color: appConfig.theme.colors.neutrals[200],
@@ -125,7 +194,7 @@ function Header() {
 }
 
 function MessageList(props) {
-    console.log(props)
+    // console.log(props)
     return (
         <Box
             tag="ul"
