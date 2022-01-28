@@ -58,7 +58,7 @@ export default function PaginaInicial() {
             autoComplete="off"
             onSubmit={e => {
                 e.preventDefault()
-                routes.push('/chat')
+                routes.push(`/chat?username=${username}`)
             }}
             styleSheet={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',

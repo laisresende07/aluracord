@@ -1,13 +1,26 @@
 import { Box, Text, TextField, Image, Button } from '@skynexui/components'
-import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js'
+import { useRouter } from 'next/router'
 import React, { useState, useEffect } from 'react'
 import appConfig from '../../config.json'
+import { ButtonSendSticker } from '../components/ButtonSendSticker'
 
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzMwMzYwMywiZXhwIjoxOTU4ODc5NjAzfQ.XpObNsCTnR8wClc5iPXTb5xHtQ3kM3GrHjRPSaJtsFc'
 const SUPABASE_URL = 'https://zxknhuscmcytbesfoial.supabase.co'
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
+function listenerMessages(addMessage) {
+    return supabaseClient
+        .from('mensagens')
+        .on('INSERT', res => {
+            addMessage(res.new)
+        })
+        .subscribe()
+}
+
 export default function Chat() {
+    const routes = useRouter();
+    const user = routes.query.username;
     const [mensagem, setMensagem] = useState('')
     const [listaDeMensagens, setListaDeMensagens] = useState([])
     const [loading, setLoading] = useState(true)
@@ -21,12 +34,23 @@ export default function Chat() {
             setListaDeMensagens(res.data)
             setLoading(false)
         })
+
+        const subscription = listenerMessages(newMessage => {
+            setListaDeMensagens(lista => [
+                newMessage,
+                ...lista,
+            ])
+        })
+        
+        return () => {
+            subscription.unsubscribe();
+        }
     }, []);
     
 
     function handleNovaMensagem(novaMensagem) {
         const mensagem = {
-            de: 'laisresende07',
+            de: user,
             texto: novaMensagem,
         }
 
@@ -35,12 +59,7 @@ export default function Chat() {
             .insert([
                 mensagem
             ])
-            .then(res => {
-                setListaDeMensagens([
-                    res.data[0],
-                    ...listaDeMensagens,
-                ])
-            })
+            .then(() => {})
 
         
         setMensagem('')
@@ -90,11 +109,11 @@ export default function Chat() {
                         styleSheet={{
                             display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center'
                         }}>
-                            <div class="dots">
-                                <div></div>
-                                <div></div>
-                                <div></div>
-                            </div>
+                            <Box id="dots">
+                                <Box></Box>
+                                <Box></Box>
+                                <Box></Box>
+                            </Box>
                             <style global jsx>{`
                                 @keyframes wave {
                                     from {
@@ -105,14 +124,14 @@ export default function Chat() {
                                     }
                                 }
                                 
-                                .dots {
+                                #dots {
                                     height: 100%;
                                     display: flex;
                                     justify-content: center;
                                     align-items: center;
                                 }
                                 
-                                .dots div {
+                                #dots div {
                                     width: 15px;
                                     height: 15px;
                                     background: #d6d6d6;
@@ -122,11 +141,11 @@ export default function Chat() {
                                     animation: wave .7s ease-in-out infinite alternate;
                                 }
                                 
-                                .dots div:nth-child(1) {
+                                #dots div:nth-child(1) {
                                     animation-delay: -0.4s;
                                 }
                                 
-                                .dots div:nth-child(2) {
+                                #dots div:nth-child(2) {
                                     animation-delay: -0.2s;
                                 }
                                 
@@ -166,6 +185,11 @@ export default function Chat() {
                                 backgroundColor: appConfig.theme.colors.neutrals[800],
                                 marginRight: '12px',
                                 color: appConfig.theme.colors.neutrals[200],
+                            }}
+                        />
+                        <ButtonSendSticker
+                            onStickerClick={sticker => {
+                                handleNovaMensagem(`:sticker:${sticker}`)
                             }}
                         />
                     </Box>
@@ -250,7 +274,15 @@ function MessageList(props) {
                                 {(new Date().toLocaleDateString())}
                             </Text>
                         </Box>
-                        {mensagem.texto}
+                        {mensagem.texto.startsWith(':sticker:')
+                            ? (
+                                <Image styleSheet={{
+                                    maxWidth: '200px'
+                                }} src={mensagem.texto.replace(':sticker:', '')} />
+                            )
+                            : (
+                                mensagem.texto
+                            )}
                     </Text>
                 )
             })}
